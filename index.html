@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MR. STERNWOOD</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> <!-- Add marked.js for markdown support -->
   <style>
     * {
       box-sizing: border-box;
@@ -65,7 +64,7 @@
     }
     .timestamp {
       font-size: 0.75rem;
-      color: #fff; /* Change to white for user message */
+      color: #777;
       margin-top: 4px;
     }
     .input-area {
@@ -120,14 +119,18 @@
     <button onclick="sendMessage()">Send</button>
   </div>
 
-  <script>
-    // Function to render AI response with markdown support
+  <!-- Import marked as ES Module -->
+  <script type="module">
+    import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
+
+    // Function to render AI response
     function renderMessage(message, isAI = true) {
       const chat = document.getElementById('chat');
       const bubble = document.createElement('div');
       bubble.className = `message ${isAI ? 'ai' : 'user'}`;
-      const formattedMessage = isAI ? marked(message) : message; // Convert AI response to HTML using markdown
-      bubble.innerHTML = `<div class="message-content">${formattedMessage}</div><div class="timestamp">Now</div>`;
+      // Use marked to parse markdown content
+      const messageHTML = marked.parse(message);
+      bubble.innerHTML = `<div class="message-content">${messageHTML}</div><div class="timestamp" style="color: white;">Now</div>`;
       chat.appendChild(bubble);
       chat.scrollTop = chat.scrollHeight;
     }
@@ -205,7 +208,7 @@
             },
           ],
           model: 'llama-3.3-70b-versatile',
-          temperature: 0,
+          temperature: 0.7,
           max_completion_tokens: 1024,
           top_p: 0.9,
         }),
