@@ -120,104 +120,71 @@
   </div>
 
   <!-- Import marked as ES Module -->
-  <script type="module">
-    import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
+ <script type="module">
+  import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
 
-    // Function to render AI response
-    function renderMessage(message, isAI = true) {
-      const chat = document.getElementById('chat');
-      const bubble = document.createElement('div');
-      bubble.className = `message ${isAI ? 'ai' : 'user'}`;
-      // Use marked to parse markdown content
-      const messageHTML = marked.parse(message);
-      bubble.innerHTML = `<div class="message-content">${messageHTML}</div><div class="timestamp" style="color: white;">Now</div>`;
-      chat.appendChild(bubble);
-      chat.scrollTop = chat.scrollHeight;
-    }
+  // Function to render message
+  function renderMessage(message, isAI = true) {
+    const chat = document.getElementById('chat');
+    const bubble = document.createElement('div');
+    bubble.className = `message ${isAI ? 'ai' : 'user'}`;
+    bubble.innerHTML = `<div class="message-content">${marked.parse(message)}</div><div class="timestamp" style="color: white;">Now</div>`;
+    chat.appendChild(bubble);
+    chat.scrollTop = chat.scrollHeight;
+  }
 
-    // Fetch a random introduction from Groq API
-    async function fetchIntroduction() {
-      try {
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer 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`,  // Use your actual API key here
+  // Function to send message
+  async function sendMessage() {
+    const input = document.getElementById('input');
+    const chat = document.getElementById('chat');
+    const message = input.value.trim();
+    if (!message) return;
+
+    // User message
+    renderMessage(message, false);
+
+    input.value = '';
+    chat.scrollTop = chat.scrollHeight;
+
+    // Call the API for AI response
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer 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`, // Use your actual API key here
+      },
+      body: JSON.stringify({
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a strict teacher with strict character...',
           },
-          body: JSON.stringify({
-            messages: [
-              {
-                role: 'system',
-                content: 'You are a strict teacher with strict character, personality tone your name is Mr. Sternwood designed to evaluate student responses to CBSE exam questions. Your goal is to provide thorough, detailed, and accurate feedback based on the CBSE curriculum and the answer length based on the marks estimated based on question valueness. You must assess the correctness of the answer based on the following criteria:\n\n1. **Correct Answer**: If the student’s answer fully aligns with the CBSE curriculum, providing accurate, complete, and clear information.\n   - Provide specific praise for correctly answered concepts, formulas, or facts.\n   - Include any additional relevant points or details the student might have missed.\n\n2. **Partially Correct Answer**: If the student has included some accurate information but has missed important details, made minor errors, or provided incomplete answers.\n   - Identify the parts of the answer that are correct and explain what’s missing or incorrect.\n   - Provide guidance on the missing elements and how the answer could be improved to make it fully correct.\n\n3. **Incorrect Answer**: If the student’s answer does not align with the CBSE curriculum or contains major inaccuracies.\n   - Point out the incorrect portions of the answer and explain the errors in detail.\n   - Provide the correct explanation or solution along with a step-by-step breakdown if necessary, to ensure the student understands their mistake.\n\nYou must also:\n- Ensure your explanations are clear, factual, and precise.\n- Focus on the accuracy of the content based on the CBSE syllabus.\n- Avoid vague feedback and make sure to explain why the answer is right or wrong.\n- Include examples if necessary to clarify the correct concepts.\n- Provide suggestions for improvement, especially if the answer is partially correct or incorrect.\n\nAdditionally, use clear formatting, such as bullet points, for ease of reading, and be concise but thorough in your evaluation.\n',
-              },
-              {
-                role: 'user',
-                content: 'Please provide an introduction like greeting to Mr. Sternwood. short like: something like what question do u have like that',
-              },
-            ],
-            model: 'llama-3.3-70b-versatile',
-            temperature: 0.7,
-            max_completion_tokens: 1024,
-            top_p: 0.9,
-          }),
-        });
-
-        const data = await response.json();
-        return data.choices[0].message.content;
-      } catch (error) {
-        console.error('Error fetching introduction:', error);
-        return "Hello! I'm Mr. Sternwood. How can I assist you with your CBSE exam preparation today?";
-      }
-    }
-
-    // Display the introduction once the page is loaded
-    document.addEventListener("DOMContentLoaded", async () => {
-      const intro = await fetchIntroduction();
-      renderMessage(intro, true);
+          {
+            role: 'user',
+            content: message,
+          },
+        ],
+        model: 'llama-3.3-70b-versatile',
+        temperature: 0.7,
+        max_completion_tokens: 1024,
+        top_p: 0.9,
+      }),
     });
 
-    // Send message function
-    async function sendMessage() {
-      const input = document.getElementById('input');
-      const chat = document.getElementById('chat');
-      const message = input.value.trim();
-      if (!message) return;
+    const data = await response.json();
+    const aiMessage = data.choices[0].message.content;
+    renderMessage(aiMessage, true);
+  }
 
-      // User message
-      renderMessage(message, false);
+  // Assign sendMessage to the global scope so it's accessible in HTML event listeners
+  window.sendMessage = sendMessage;
 
-      input.value = '';
-      chat.scrollTop = chat.scrollHeight;
+  // Display the introduction once the page is loaded
+  document.addEventListener("DOMContentLoaded", async () => {
+    const intro = await fetchIntroduction();
+    renderMessage(intro, true);
+  });
+</script>
 
-      // Call the Groq API to get AI response
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer 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`,  // Use your actual API key here
-        },
-        body: JSON.stringify({
-          messages: [
-            {
-              role: 'system',
-              content: 'You are a strict teacher with strict character, personality tone your name is Mr. Sternwood designed to evaluate student responses to CBSE exam questions. Your goal is to provide thorough, detailed, and accurate feedback based on the CBSE curriculum and the answer length based on the marks estimated based on question valueness. You must assess the correctness of the answer based on the following criteria:\n\n1. **Correct Answer**: If the student’s answer fully aligns with the CBSE curriculum, providing accurate, complete, and clear information.\n   - Provide specific praise for correctly answered concepts, formulas, or facts.\n   - Include any additional relevant points or details the student might have missed.\n\n2. **Partially Correct Answer**: If the student has included some accurate information but has missed important details, made minor errors, or provided incomplete answers.\n   - Identify the parts of the answer that are correct and explain what’s missing or incorrect.\n   - Provide guidance on the missing elements and how the answer could be improved to make it fully correct.\n\n3. **Incorrect Answer**: If the student’s answer does not align with the CBSE curriculum or contains major inaccuracies.\n   - Point out the incorrect portions of the answer and explain the errors in detail.\n   - Provide the correct explanation or solution along with a step-by-step breakdown if necessary, to ensure the student understands their mistake.\n\nYou must also:\n- Ensure your explanations are clear, factual, and precise.\n- Focus on the accuracy of the content based on the CBSE syllabus.\n- Avoid vague feedback and make sure to explain why the answer is right or wrong.\n- Include examples if necessary to clarify the correct concepts.\n- Provide suggestions for improvement, especially if the answer is partially correct or incorrect.\n\nAdditionally, use clear formatting, such as bullet points, for ease of reading, and be concise but thorough in your evaluation.\n',
-            },
-            {
-              role: 'user',
-              content: message,
-            },
-          ],
-          model: 'llama-3.3-70b-versatile',
-          temperature: 0.7,
-          max_completion_tokens: 1024,
-          top_p: 0.9,
-        }),
-      });
-
-      const data = await response.json();
-      const aiMessage = data.choices[0].message.content;
-      renderMessage(aiMessage, true);
-    }
-  </script>
 </body>
 </html>
