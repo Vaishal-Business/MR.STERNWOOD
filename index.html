@@ -245,6 +245,14 @@
     renderMessage(intro, true);
     loadConversation(); // Load previous conversation
   });
+
+  // Listen for Enter key press to send the message
+  document.getElementById('input').addEventListener('keydown', function(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault(); // Prevent default behavior (like new line on Shift + Enter)
+      sendMessage();
+    }
+  });
 </script>
 
 
